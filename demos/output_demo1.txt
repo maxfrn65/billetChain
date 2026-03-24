@@ -1,0 +1,82 @@
+============================================================
+DEMO 01 — MINI-BLOCKCHAIN EN PYTHON
+Formation Utopios — Blockchain Fondamentaux
+============================================================
+
+[1] Création de la blockchain (difficulté: 4)
+Genesis block créé: 3fc63887a1323aedc3b6...
+
+[2] Ajout de transactions (mempool)...
+  Tx ajoutée: Alice -> Bob: 50 coins
+  Tx ajoutée: Bob -> Charlie: 25 coins
+  Tx ajoutée: Charlie -> Diana: 10 coins
+
+Minage du bloc #1 (difficulté: 4)...
+  Bloc miné en 0.14s (16,134 tentatives)
+  Hash: 0000ae2634f7e7dd38843c5b4dab13557085c3b034b441c02cadd9b053f7ed7e
+  Nonce: 16134
+
+[3] Nouveau lot de transactions...
+  Tx ajoutée: Alice -> Eve: 30 coins
+  Tx ajoutée: Diana -> Alice: 5 coins
+
+Minage du bloc #2 (difficulté: 4)...
+  Bloc miné en 0.69s (92,852 tentatives)
+  Hash: 0000946f59d75eb83bb48f488cb61abd41e2dd8bfc5c262e40c69c58cefc65e6
+  Nonce: 92852
+
+============================================================
+BLOCKCHAIN COMPLETE
+============================================================
+
+--- Bloc #0 ---
+  Timestamp : Tue Mar 24 10:48:30 2026
+  Hash      : 3fc63887a1323aedc3b681a0aed1994d7c760bc01eed7f521daa760333aa25ed
+  Prev Hash : 0000000000000000000000000000000000000000000000000000000000000000
+  Nonce     : 0
+  Transactions (5):
+    [GENESIS] Formation Blockchain Utopios
+    NETWORK -> Alice: 200 coins
+    NETWORK -> Bob: 100 coins
+    NETWORK -> Charlie: 50 coins
+    NETWORK -> Diana: 30 coins
+
+--- Bloc #1 ---
+  Timestamp : Tue Mar 24 10:48:30 2026
+  Hash      : 0000ae2634f7e7dd38843c5b4dab13557085c3b034b441c02cadd9b053f7ed7e
+  Prev Hash : 3fc63887a1323aedc3b681a0aed1994d7c760bc01eed7f521daa760333aa25ed
+  Nonce     : 16134
+  Transactions (4):
+    Alice -> Bob: 50 coins
+    Bob -> Charlie: 25 coins
+    Charlie -> Diana: 10 coins
+    [REWARD] -> Mineur-1: +10 coins
+
+--- Bloc #2 ---
+  Timestamp : Tue Mar 24 10:48:30 2026
+  Hash      : 0000946f59d75eb83bb48f488cb61abd41e2dd8bfc5c262e40c69c58cefc65e6
+  Prev Hash : 0000ae2634f7e7dd38843c5b4dab13557085c3b034b441c02cadd9b053f7ed7e
+  Nonce     : 92852
+  Transactions (3):
+    Alice -> Eve: 30 coins
+    Diana -> Alice: 5 coins
+    [REWARD] -> Mineur-2: +10 coins
+
+============================================================
+
+[4] Vérification de l'intégrité...
+  Chaine valide
+
+[5] Soldes finaux:
+  Alice: 125.0 coins
+  Bob: 125.0 coins
+  Charlie: 65.0 coins
+  Diana: 35.0 coins
+  Eve: 30.0 coins
+  Mineur-1: 10.0 coins
+  Mineur-2: 10.0 coins
+
+[6] Tentative de falsification du bloc #1...
+  Montant falsifié: 50 -> 5000
+  ERREUR Bloc #1: hash invalide
+  -> La falsification est détectée par la validation
