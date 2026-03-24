@@ -1,0 +1,131 @@
+============================================================
+DEMO 02 — CRYPTOGRAPHIE BLOCKCHAIN
+Formation Utopios — Module 2
+============================================================
+============================================================
+PARTIE 1 — SHA-256 ET L'EFFET AVALANCHE
+============================================================
+
+Effet avalanche :
+  SHA256('Formation Blockchain Utopios')
+    = 563ddf541891236aeeca928da8cde4b230b784786e9c00fe126479df3a4393c1
+
+  SHA256('Formation Blockchain Utopios.')
+    = b39eb1da16293b91e51a6156bca10bab48f4ce6097f8131436b74bc264322efa
+
+  SHA256('formation Blockchain Utopios')
+    = 6bc7aae7ba2f9da6fcbb1a6d988cec16057024c58cb4e49ae5f9c1a354e11569
+
+  SHA256('Formation Blockchain Utopios!')
+    = c12fb274b84fe1d05556bf14a1c6075a59e2a148cd80f7c5b2416fe78b229999
+
+  SHA256(""  (vide))
+    = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+Déterminisme : SHA256("même message") calculé 2 fois
+  Résultat 1 : c3b41428acef715a54707a96f6ca8628b10271b13fca7f038b9fce0e50b914c1
+  Résultat 2 : c3b41428acef715a54707a96f6ca8628b10271b13fca7f038b9fce0e50b914c1
+  Identiques : True
+
+Chaînage de hash (simulation 3 blocs) :
+  Bloc 1 : SHA256(prev + data) = 6bfac1069f3d3299bbff8c3b73e80f3b...
+  Bloc 2 : SHA256(prev + data) = e0286fbcb8f97d17c56e96ba0695ccd7...
+  Bloc 3 : SHA256(prev + data) = 7f6dc5684003098e8d95ba41ed7cb52b...
+
+============================================================
+PARTIE 2 — SIGNATURES NUMERIQUES ECDSA
+============================================================
+
+[1] Génération des clés (courbe secp256k1 — même que Bitcoin/Ethereum)
+  Clé privée  : b358ccecb3c3f6b97c7b59c352e43d888225c4bc9427ee0d176a89c5fc76534b
+  Clé publique: 5e90a83cdb82a974c6f9e40956235ae01e4c8391f35df093a1d023f73a1f...
+  -> La clé privée ne doit JAMAIS être partagée
+  -> La clé publique est partageable, elle permet de vérifier
+
+[2] Signature d'une transaction
+  Transaction : {"amount": 50, "receiver": "Bob", "sender": "Alice", "timestamp": 1711000000}
+  Hash TX     : 145b55e6d9eb9957d4c655fb1b0635361248a66cfd75355a0b8cb8f4edb7559d
+  Signature   : 751f97539922590909c5c2eb9d34710cc1029fd3a8ee3d76c28210f20f8d...
+
+[3] Vérification de la signature (ce que fait chaque nœud)
+  VALIDE — la transaction est authentique et non modifiée
+
+[4] Tentative de falsification (montant 50 -> 5000)
+  DETECTEE — la signature ne correspond pas aux données modifiées
+
+[5] Tentative de vérification avec la mauvaise clé publique
+  DETECTEE — la clé publique ne correspond pas au signataire
+
+[6] Bob essaie de signer AU NOM d'Alice (usurpation)
+  DETECTEE — Bob ne peut pas signer au nom d'Alice
+
+============================================================
+PARTIE 3 — ARBRE DE MERKLE
+============================================================
+
+6 transactions dans le bloc
+Racine de Merkle : e6e3506952e7a12e7e536b3583e78aaade976b0eaeba91069806bcb2e7adf4f8
+
+Feuilles (hash des transactions) :
+  [0] 994c4e2d6f8d893ad4d1... <- {"from":"Alice","to":"Bob","amount":50}...
+  [1] 4d8aaa6db3d39838c632... <- {"from":"Bob","to":"Charlie","amount":25...
+  [2] eed5c8202eb0bb502b54... <- {"from":"Charlie","to":"Diana","amount":...
+  [3] 30afbe6dac19f1d30163... <- {"from":"Diana","to":"Eve","amount":5}...
+  [4] 7bd8924bfb8d2e9dc376... <- {"from":"Eve","to":"Frank","amount":3}...
+  [5] ca81089b02186403d877... <- {"from":"Frank","to":"Alice","amount":1}...
+
+Structure de l'arbre de Merkle :
+  Niveau 3: e6e35069.. 
+  Niveau 2: 61248e68.. ef686bfc.. 
+  Niveau 1: e94ddeaf.. 9ddf4a99.. 0c0217a8.. 0c0217a8.. 
+  Racine: 994c4e2d.. 4d8aaa6d.. eed5c820.. 30afbe6d.. 7bd8924b.. ca81089b.. 
+
+--- Vérification SPV (client léger) ---
+Question : la transaction [2] est-elle dans ce bloc ?
+Transaction : {"from":"Charlie","to":"Diana","amount":10}
+Preuve (3 hashes au lieu de 6) :
+  [right] 30afbe6dac19f1d30163...
+  [left] e94ddeaf988763642a5c...
+  [right] ef686bfcdd48ab5895c9...
+Résultat : Transaction présente = True
+
+--- Détection de falsification ---
+Transaction falsifiée présente : False
+
+--- Impact d'une modification sur la racine ---
+Racine originale : e6e3506952e7a12e7e536b3583e78aaa...
+Racine modifiée  : 033e41712ecd22ce841c3400347b9289...
+Identiques       : False
+-> Modifier 1 transaction sur 1 million change la racine entière
+
+============================================================
+PARTIE 4 — GENERATION D'UNE ADRESSE BLOCKCHAIN
+============================================================
+
+Etape 1 — Cle privee (256 bits) :
+  6f3df250785573031efc78a009fd2463165c8a2e9f608571c25ba818ab90ecef
+
+Etape 2 — Cle publique non compressée (512 bits) :
+  04b201b550d8327ef8bcaa633f83745dd17e9faad5...
+
+Etape 3 — SHA256(cle publique) :
+  78eb24488b88de0cf2a4aa7e960eaccf9e7b2802d01a1b68786a741b87b3ff8e
+
+Etape 4 — RIPEMD160(SHA256) = Hash160 :
+  db77982a91e65028bf5c31430e7ec35d66f037af
+
+Etape 5 — Prefixe reseau (0x00 = mainnet Bitcoin) :
+  00db77982a91e65028bf5c31430e7ec35d66f037af
+
+Etape 6 — Checksum (4 premiers octets de SHA256(SHA256())) :
+  2c943b54
+
+Etape 7 — Adresse Bitcoin (Base58Check) :
+  1M1SFaNiNvwiwRCk85jWdDwiQCT6n59ifM
+
+  -> Cette adresse est publique (partageable)
+  -> Retrouver la cle privee depuis l'adresse est infaisable (securite 128 bits)
+
+============================================================
+FIN DE LA DEMO CRYPTOGRAPHIE
+============================================================
