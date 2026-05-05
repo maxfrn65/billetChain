@@ -5,8 +5,17 @@ contract Counter {
     uint256 public count;
     address public immutable owner;
 
+    error NotOwner(address caller);
+    error TooLarge(uint256 amount);
+    error UnderZero();
+
     constructor() {
         owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner(msg.sender);
+        _;
     }
 
     function increment() external  {
@@ -14,6 +23,7 @@ contract Counter {
     }
 
     function incrementBy(uint256 n) external  {
+        if(n > 100) revert TooLarge(n);
         count += n;
     }
 
@@ -21,11 +31,12 @@ contract Counter {
         return count;
     }
 
-    function decrement() external {
+    function decrement() external onlyOwner {
+        if(count == 0) revert UnderZero();
         count -= 1;
     }
 
-    function reset() external  {
+    function reset() external onlyOwner {
         count = 0;
     }
 }
