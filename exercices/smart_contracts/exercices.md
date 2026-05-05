@@ -64,3 +64,81 @@ Pratiquer les mappings, modifiers, et le pattern d'authorisation d'adresses.
 
 - Ajouter une fonction `transferAdmin(address newAdmin)` (seulement admin)
 - Ajouter un délai de 24h avant qu'une whitelist soit "active" (`mapping(address => uint256) activeFrom`)
+
+## Exercice 3 — Splitter de paiement (60 min)
+
+### Objectif
+
+Manipuler des ETH dans un contrat, comprendre le pattern pull-payment, gérer plusieurs bénéficiaires avec parts proportionnelles.
+
+### Énoncé
+
+Écrire un contrat `PaymentSplitter` qui répartit les ETH reçus entre plusieurs bénéficiaires selon des parts (shares).
+
+- Constructor `constructor(address[] memory _payees, uint256[] memory _shares)`
+  - Revert si tableaux de longueurs différentes ou vides
+  - Revert si une part est nulle
+  - Revert si une adresse est `address(0)`
+  - Stocker `mapping(address => uint256) public shares` et `uint256 public totalShares`
+- Fonction `receive() external payable` : enregistre simplement les ETH reçus
+- `pendingPayment(address account)` : retourne le montant que `account` peut retirer
+  - Formule : `(totalReceived × shares[account] / totalShares) - alreadyReleased[account]`
+- `release(address payable account)` : transfère `pendingPayment(account)` vers `account`
+  - Revert si compte n'a pas de parts
+  - Revert si rien à payer
+  - Émettre `event PaymentReleased(address indexed to, uint256 amount)`
+- Variables additionnelles : `uint256 totalReceived`, `mapping(address => uint256) released`
+
+### Critères d'acceptation
+
+| Test | Comportement attendu |
+|------|---------------------|
+| Payees: [Alice, Bob, Carol] avec shares [50, 30, 20], reçoit 10 ETH | `pendingPayment(Alice) == 5 ETH`, Bob = 3, Carol = 2 |
+| Après release Alice puis nouveau dépôt 10 ETH | `pendingPayment(Alice) == 5 ETH` (10/20 du total) |
+| `release(Alice)` deux fois sans nouveau dépôt | Le second revert "Nothing to release" |
+| Constructor avec tableaux vides | Revert |
+| Constructor avec longueurs différentes | Revert |
+
+### Bonus
+
+- Permettre l'ajout d'un nouveau payee après déploiement (admin-only)
+- Supporter les retraits via ERC-20 en plus d'ETH (un mapping `released[token][account]`)
+
+---
+
+## Exercice 4 — Token ERC-20 « VotingToken » (60 min)
+
+### Objectif
+
+Étendre un ERC-20 avec une logique métier : pondération de vote.
+
+### Énoncé
+
+Créer `VotingToken` qui hérite de `ERC20` (OpenZeppelin) et permet aux détenteurs de **voter sur des propositions**.
+
+- ERC-20 standard avec name = "Voting Token", symbol = "VOTE", supply initial = 1_000_000 × 10^18 mintés au déployeur
+- `struct Proposal { string description; uint256 voteCount; bool exists; }`
+- `Proposal[] public proposals`
+- `mapping(uint256 => mapping(address => bool)) public voted` pour suivre qui a voté pour quoi
+- `createProposal(string calldata description)` : n'importe qui peut créer une proposition (mais doit détenir au moins 1 VOTE)
+- `vote(uint256 proposalId)` :
+  - Revert si proposition inexistante
+  - Revert si déjà voté pour cette proposition
+  - Le poids du vote = `balanceOf(msg.sender)` au moment du vote
+  - Incrémenter `proposals[proposalId].voteCount` du poids
+- `topProposal()` : retourne `(uint256 id, uint256 voteCount)` pour la proposition leader
+
+### Critères d'acceptation
+
+| Test | Comportement attendu |
+|------|---------------------|
+| Déployement | `totalSupply == 1M × 10^18` |
+| Alice avec 0 VOTE crée une proposition | Revert |
+| Alice avec 100 VOTE crée et vote | `voteCount == 100 × 10^18` |
+| Alice vote deux fois sur même proposition | Le second revert |
+| 3 propositions, votes différents | `topProposal()` renvoie celle avec le plus haut score |
+
+### Bonus
+
+- Empêcher le double vote en transférant des tokens entre comptes (snapshot au moment du vote ou utiliser ERC20Votes)
+- Ajouter une deadline par proposition
