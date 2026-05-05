@@ -30,3 +30,37 @@ Manipuler les bases : variables d'état, fonctions publiques, contrôle d'accès
 
 - Ajouter `incrementBy(uint256 n)` qui revert si `n > 100`
 - Limiter `increment()` à 1 appel par bloc et par adresse (utiliser `mapping(address => uint256)`)
+
+## Exercice 2 — Whitelist (45 min)
+
+### Objectif
+
+Pratiquer les mappings, modifiers, et le pattern d'authorisation d'adresses.
+
+### Énoncé
+
+Écrire un contrat `Whitelist` qui maintient une liste blanche d'adresses :
+
+- `address public immutable admin`
+- `mapping(address => bool) public isWhitelisted`
+- `uint256 public whitelistedCount`
+- `addToWhitelist(address user)` : seulement admin, revert si déjà whitelisté
+- `removeFromWhitelist(address user)` : seulement admin, revert si non whitelisté
+- `addBatch(address[] calldata users)` : seulement admin, ajoute toutes les adresses (ignore les doublons sans revert)
+- `event Whitelisted(address indexed user)` et `event Unwhitelisted(address indexed user)`
+- Une **custom error** `NotAdmin(address caller)` à la place d'un require avec string
+
+### Critères d'acceptation
+
+| Test | Comportement attendu |
+|------|---------------------|
+| `addToWhitelist(alice)` depuis admin | `isWhitelisted(alice) == true`, `whitelistedCount == 1` |
+| `addToWhitelist(alice)` depuis non-admin | Revert avec `NotAdmin(caller)` |
+| `addToWhitelist(alice)` deux fois | Le second revert |
+| `removeFromWhitelist(alice)` puis `isWhitelisted(alice)` | Retourne `false` |
+| `addBatch([alice, bob, alice, carol])` | Whitelistés : alice, bob, carol ; count = 3 |
+
+### Bonus
+
+- Ajouter une fonction `transferAdmin(address newAdmin)` (seulement admin)
+- Ajouter un délai de 24h avant qu'une whitelist soit "active" (`mapping(address => uint256) activeFrom`)
