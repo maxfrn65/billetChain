@@ -21,8 +21,11 @@ contract BankTest is Test {
     }
 
     function testDeposit() public {
-        vm.prank(alice);
+        vm.startPrank(alice);
+        vm.deal(alice, 100 ether);
         bank.deposit{value: 1 ether}();
-        assertEq(bank.balanceOf(alice), 1 ether);
+        bank.deposit{value: 2 ether}();
+        vm.stopPrank();
+        assertEq(bank.balanceOf(alice), 3 ether);
     }
 }
